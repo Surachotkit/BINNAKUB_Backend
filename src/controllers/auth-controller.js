@@ -8,10 +8,12 @@ exports.register = async (req, res, next) => {
   try {
     const { value, error } = registerSchema.validate(req.body);
     console.log(value);
+   
 
     if (error) {
       return next(error);
     }
+    console.log(value.password ,'password')
     value.password = await bcrypt.hash(value.password, 12);
     const user = await prisma.user.create({
       data: value,
@@ -27,7 +29,7 @@ exports.register = async (req, res, next) => {
     );
 
     delete user.password;
-    res.status(201).json({ accessToken });
+    res.status(201).json({ accessToken,user });
   } catch (err) {
     next(err);
   }
@@ -35,10 +37,15 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
+    console.log("-------------")
+    console.log(req.body)
     const { value, error } = loginSchema.validate(req.body);
+    
+    
     if (error) {
       return next(error);
     }
+    console.log("-------")
 
     const user = await prisma.user.findFirst({
       where: { email: value.email },
@@ -61,7 +68,7 @@ exports.login = async (req, res, next) => {
     );
 
     delete user.password;
-    res.status(200).json({ accessToken });
+    res.status(200).json({ accessToken, user });
   } catch (err) {
     next(err);
   }
