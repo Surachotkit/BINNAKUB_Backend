@@ -65,6 +65,7 @@ exports.login = async (req, res, next) => {
 
     const payload = { userId: user.user_id };
     console.log("🚀 ~ file: auth-controller.js:68 ~ exports.login= ~ payload:", payload)
+    
     const accessToken = jwt.sign(
       payload,
       process.env.JWT_SECRET_KEY || "1q1w1w1we22e2ee2r33r",
