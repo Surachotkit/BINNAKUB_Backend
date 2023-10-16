@@ -6,6 +6,8 @@ const morgan = require('morgan')
 const notFoundMiddleWare = require('./middlewares/not-found')
 const errorMiddleware = require('./middlewares/error')
 const authRoute = require('./routes/auth-route')
+const depositRoute = require('./routes/deposit-route')
+
 
 const app = express()
 
@@ -14,6 +16,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 
 app.use('/auth', authRoute)
+app.use('/deposit', depositRoute)
 
 app.use(notFoundMiddleWare)
 app.use(errorMiddleware)
