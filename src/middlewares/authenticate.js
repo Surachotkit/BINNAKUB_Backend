@@ -14,7 +14,7 @@ module.exports = async (req, res, next) => {
 
     const token = authorization.split(" ")[1];
   
-
+console.log(process.env.JWT_SECRET_KEY)
     const payload = jwt.verify(
       token,
       process.env.JWT_SECRET_KEY || "1q1w1w1we22e2ee2r33r"

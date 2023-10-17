@@ -12,7 +12,7 @@ const registerSchema = Joi.object({
     .trim()
     .required()
     .strip(),
-});
+}).options({ allowUnknown: true })
 
 exports.registerSchema = registerSchema;
 
