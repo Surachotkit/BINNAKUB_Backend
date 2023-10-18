@@ -6,3 +6,10 @@ const depositSchema = Joi.object({
 }).options({ stripUnknown: true }); 
 
 exports.depositSchema = depositSchema;
+
+const topupSchema = Joi.object({
+    quantity: Joi.number(),
+    user_id: Joi.number()
+})
+
+exports.topupSchema = topupSchema
