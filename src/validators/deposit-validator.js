@@ -8,7 +8,7 @@ const depositSchema = Joi.object({
 exports.depositSchema = depositSchema;
 
 const topupSchema = Joi.object({
-    amount: Joi.number(),
+    // amount: Joi.number(),
     quantity: Joi.number(),
     user_id: Joi.number()
 })
