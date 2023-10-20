@@ -1,0 +1,7 @@
+REGISTER
+POST /auth/register
+BODY email, password, confirmPassword
+RESPONSE
+201
+400
+500

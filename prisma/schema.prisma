@@ -12,14 +12,14 @@ datasource db {
 
 model User {
   user_id         Int               @id @default(autoincrement())
-  username        String            @unique
+  email           String            @unique
   password        String            @unique
   role            String            @default("USER")
   create_date     DateTime          @default(now())
   last_update     DateTime          @default(now())
   history_payment History_payment[]
-  transaction     Transaction[]
   portfolio       Portfolio[]
+  Transaction     Transaction[]
 }
 
 model History_payment {
@@ -27,48 +27,48 @@ model History_payment {
   amount             Decimal  @db.Decimal(20, 2)
   create_date        DateTime @default(now())
   last_update        DateTime @default(now())
-  userId             Int
-  user               User     @relation(fields: [userId], references: [user_id])
+  user_id            Int
+  user               User     @relation(fields: [user_id], references: [user_id])
 }
 
 model Transaction {
-  transaction_id Int        @id @default(autoincrement())
-  coin_name      String     
-  type           TypeStatus
-  price          Decimal    @db.Decimal(20, 2)
+  transaction_id Int      @id @default(autoincrement())
+  coin_name      String
+  type           String
+  price          Decimal  @db.Decimal(20, 2)
   quantity       Int
-  fee            Decimal    @db.Decimal(20, 2)
+  fee            Decimal  @db.Decimal(20, 2)
   image_coin     String?
-  create_date    DateTime   @default(now())
-  last_update    DateTime   @default(now())
-  userId         Int
-  user           User       @relation(fields: [userId], references: [user_id])
-  portfolioId    Int
-  portfolio      Portfolio  @relation(fields: [portfolioId], references: [portfolio_id])
+  create_date    DateTime @default(now())
+  last_update    DateTime @default(now())
+  status         Status
+  user           User     @relation(fields: [user_id], references: [user_id])
+  user_id        Int
 }
 
 model Portfolio {
-  portfolio_id Int           @id @default(autoincrement())
-  price        Decimal       @db.Decimal(20, 2)
-  quantity     Decimal       @db.Decimal(20, 5)
-  create_date  DateTime      @default(now())
-  last_update  DateTime      @default(now())
-  userId       Int
-  user         User          @relation(fields: [userId], references: [user_id])
-  coinListId   Int
-  coinList     Coin_list     @relation(fields: [coinListId], references: [coin_list_id])
-  transaction  Transaction[]
+  portfolio_id           Int       @id @default(autoincrement())
+  average_purchase_price Decimal   @db.Decimal(20, 2)
+  quantity               Decimal   @db.Decimal(20, 5)
+  profit_or_loss         Decimal   @db.Decimal(20, 5)
+  weight                 Decimal   @db.Decimal(20, 5)
+  create_date            DateTime  @default(now())
+  last_update            DateTime  @default(now())
+  user_id                Int
+  user                   User      @relation(fields: [user_id], references: [user_id])
+  coin_name              String
+  coinList               Coin_list @relation(fields: [coin_name], references: [coin_name])
 }
 
 model Coin_list {
   coin_list_id Int         @id @default(autoincrement())
   coin_name    String      @unique
-  price        Decimal     @db.Decimal(20, 2)
+  price        Decimal?    @db.Decimal(20, 2)
   quantity     Decimal     @db.Decimal(20, 2)
-  fee          Decimal     @db.Decimal(20, 2)
+  fee          Decimal?    @db.Decimal(20, 2) @default(0.01)
   image_coin   String?
-  type_coin    TypeCoin
-  status       CoinStatus
+  type_coin    TypeCoin    @default(Crypto)
+  status       CoinStatus  @default(Inactive)
   create_date  DateTime    @default(now())
   last_update  DateTime    @default(now())
   portfolio    Portfolio[]
@@ -87,4 +87,9 @@ enum TypeCoin {
 enum TypeStatus {
   Buy
   Sell
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
 }

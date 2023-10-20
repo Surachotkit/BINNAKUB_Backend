@@ -1,0 +1,40 @@
+const createError = require("../util/create-error");
+const jwt = require("jsonwebtoken");
+const prisma = require("../models/prisma");
+
+module.exports = async (req, res, next) => {
+
+  try {
+    const authorization = req.headers.authorization;
+
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return next(createError("unauthenicated", 401));
+    }
+    const token = authorization.split(" ")[1];
+    console.log(process.env.JWT_SECRET_KEY)
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY || "1q1w1w1we22e2ee2r33r"
+    );
+
+    const user = await prisma.user.findUnique({
+      where: {
+        user_id: payload.userId,
+      },
+    });
+ 
+
+    if (!user) {
+      return next(createError("unauthenicated", 401));
+    }
+    delete user.password;
+    req.user = user;
+    next();
+    
+  } catch (err) {
+    if (err.name === "TokenExpiredError" || err.name === "JsonWebTokenError") {
+      err.statusCode = 401;
+    }
+    next(err);
+  }
+};
