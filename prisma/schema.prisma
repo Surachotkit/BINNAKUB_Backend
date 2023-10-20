@@ -63,12 +63,12 @@ model Portfolio {
 model Coin_list {
   coin_list_id Int         @id @default(autoincrement())
   coin_name    String      @unique
-  price        Decimal     @db.Decimal(20, 2)
+  price        Decimal?    @db.Decimal(20, 2)
   quantity     Decimal     @db.Decimal(20, 2)
-  fee          Decimal     @db.Decimal(20, 2)
+  fee          Decimal?    @db.Decimal(20, 2) 
   image_coin   String?
-  type_coin    TypeCoin
-  status       CoinStatus
+  type_coin    TypeCoin    @default(Crypto)
+  status       CoinStatus  @default(Inactive)
   create_date  DateTime    @default(now())
   last_update  DateTime    @default(now())
   portfolio    Portfolio[]
