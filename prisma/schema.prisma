@@ -65,7 +65,7 @@ model Coin_list {
   coin_name    String      @unique
   price        Decimal?    @db.Decimal(20, 2)
   quantity     Decimal     @db.Decimal(20, 2)
-  fee          Decimal?    @db.Decimal(20, 2) 
+  fee          Decimal?    @db.Decimal(20, 2) @default(0.01)
   image_coin   String?
   type_coin    TypeCoin    @default(Crypto)
   status       CoinStatus  @default(Inactive)
