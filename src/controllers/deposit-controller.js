@@ -1,9 +1,9 @@
-const {
-  depositSchema,
-  topupSchema,
-} = require("../validators/deposit-validator");
+const { depositSchema } = require("../validators/deposit-validator");
 const prisma = require("../models/prisma");
-const constantCoin = require('../util/constant/coin')
+const constantCoin = require("../util/constant/coin");
+const constantFee = require("../util/constant/fee");
+const constantStatus = require("../util/constant/status");
+
 
 exports.create = async (req, res, next) => {
   try {
@@ -25,8 +25,59 @@ exports.create = async (req, res, next) => {
       data: bodyRequest,
     });
 
+    const findCoinListUSDT = await prisma.coin_list.findFirst({
+      where: {
+        coin_name: constantCoin.USDT,
+      },
+    });
+
+    const newAmountUpdateInTableCoinList =
+      parseFloat(findCoinListUSDT?.quantity) - parseFloat(value?.amount);
+    await prisma.coin_list.update({
+      where: {
+        coin_list_id: findCoinListUSDT?.coin_list_id,
+      },
+      data: {
+        quantity: newAmountUpdateInTableCoinList,
+      },
+    });
+
+    const Fee = constantFee?.FEE;
+    const fee = parseFloat(value?.amount) * parseFloat(Fee);
+    let bodyTransaction = {
+      coin_name: constantCoin.USDT,
+      type: constantStatus.BUY,
+      price: value?.amount,
+      quantity: value?.amount,
+      fee: fee,
+      user_id: user_id,
+      status: constantStatus?.ACTIVE,
+    };
+
+    await prisma.transaction.create({
+      data: bodyTransaction,
+    });
+
+    let bodyNewCoinInPortfolio = {
+      coin_name: constantCoin.USDT,
+      average_purchase_price: 0.0,
+      quantity: value?.amount,
+      profit_or_loss: 0.0,
+      weight: 0,
+      user_id: user_id,
+    };
+
+    await prisma.portfolio.create({
+      data: bodyNewCoinInPortfolio,
+    });
+
+    let response = {
+      status: constantStatus.SUCCEDD,
+      data: createHistoryPayment,
+    };
+
     console.log("createHistoryPayment: --------> ", createHistoryPayment);
-    res.status(201).json({ createHistoryPayment });
+    res.status(201).json({ response });
   } catch (err) {
     next(err);
   }
@@ -34,102 +85,112 @@ exports.create = async (req, res, next) => {
 
 exports.topup = async (req, res, next) => {
   try {
-    const { value, error } = topupSchema.validate(req.body);
+    const { value, error } = depositSchema.validate(req.body);
 
     if (error) {
       return next(error);
     }
-    
+
     const user_id = req.user.user_id;
-    console.log("🚀 ~ file: deposit-controller.js:44 ~ exports.topup= ~ user_id:", user_id)
 
     const bodyRequest = {
       amount: value?.amount,
-      user_id: user_id
-    }
-    console.log("🚀 ~ file: deposit-controller.js:50 ~ exports.topup= ~ bodyRequest:", bodyRequest)
+      user_id: user_id,
+    };
 
-    await prisma.history_payment.create({
-      data: bodyRequest
-    })
+    const createHistoryPayment = await prisma.history_payment.create({
+      data: bodyRequest,
+    });
 
     const findCoinListUSDT = await prisma.coin_list.findFirst({
       where: {
-        coin_name: constantCoin.USDT
-      }
-    })
-    console.log("🚀 ~ file: deposit-controller.js:59 ~ exports.topup= ~ findCoinListUSDT:", findCoinListUSDT)
-    
-    const newQuantity = parseFloat(findCoinListUSDT?.quantity) - parseFloat(value?.quantity)
-  
-    const s = await prisma.coin_list.update({
+        coin_name: constantCoin.USDT,
+      },
+    });
+
+    const newAmountUpdateInTableCoinList =
+      parseFloat(findCoinListUSDT?.quantity) - parseFloat(value?.amount);
+    await prisma.coin_list.update({
       where: {
-        coin_list_id: findCoinListUSDT?.coin_list_id
+        coin_list_id: findCoinListUSDT?.coin_list_id,
       },
       data: {
-        quantity: newQuantity
-      }
-    })
+        quantity: newAmountUpdateInTableCoinList,
+      },
+    });
 
+    const Fee = constantFee?.FEE;
+    const fee = parseFloat(value?.amount) * parseFloat(Fee);
+    let bodyTransaction = {
+      coin_name: constantCoin.USDT,
+      type: constantStatus.BUY,
+      price: value?.amount,
+      quantity: value?.amount,
+      fee: fee,
+      user_id: user_id,
+      status: constantStatus?.ACTIVE,
+    };
+    await prisma.transaction.create({
+      data: bodyTransaction,
+    });
 
-    // const findValueOld  = await prisma.coin_list.findUnique({
-    //   where: {
-    //     coin_list_id: 1
-    //   },
-    //   select: {
-    //     quantity: true
-    //   }
-    // })
-  
-    // // old value
-    // let oldQuantity  = findValueOld.quantity
-    // // new value
-    // let bodyQuantity = value?.quantity
+    const findOldUsdtInPortfolio = await prisma.portfolio.findFirst({
+      where: {
+        AND: [{ coin_name: constantCoin.USDT }, { user_id: user_id }],
+      },
+    });
 
-    // let newQuantity = parseFloat(oldQuantity) + parseFloat(bodyQuantity)
+    const newAmount =
+      parseFloat(findOldUsdtInPortfolio?.quantity) + parseFloat(value?.amount);
 
-    // value.quantity = newQuantity
+    await prisma.portfolio.update({
+      data: {
+        weight: 0,
+        average_purchase_price: 0,
+        profit_or_loss: 0,
+        quantity: newAmount,
+      },
+      where: {
+        portfolio_id: findOldUsdtInPortfolio?.portfolio_id,
+        AND: [{ user_id: user_id }, { coin_name: constantCoin.USDT }],
+      },
+    });
 
-    // const topupDeposit = await prisma.coin_list.update({
-    //   data: value,
-    //   where: {
-    //     coin_list_id: 1,
-    //   },
-    // });
-    console.log("topupDeposit ----------> ", s);
-    res.status(201).json({ s });
+    let response = {
+      status: constantStatus.SUCCEDD,
+      data: createHistoryPayment,
+    };
+
+    res.status(201).json({ response });
   } catch (err) {
     next(err);
   }
 };
 
-
 exports.validate = async (req, res, next) => {
   try {
-      let request = req.body;
-      const user_id = req.user.user_id
-      console.log("🚀 ~ file: deposit-controller.js:108 ~ exports.validate= ~ user_id:", user_id)
-      const findHistoryPayment = await prisma.history_payment.findFirst({
-          where: {
-              user_id: request?.user_id
-          }
-      });
+    let request = req.body;
+    const findHistoryPayment = await prisma.history_payment.findFirst({
+      where: {
+        user_id: request?.user_id,
+      },
+    });
 
-      let validate;
+    let validate;
 
-      if (!findHistoryPayment) {
-          validate = false
-      }else{
-          validate = true
-      }
+    if (!findHistoryPayment) {
+      validate = false;
+    } else {
+      validate = true;
+    }
 
-      const response = {
-          status: constantStatus.SUCCEDD,
-          validate: validate
-      }       
-      console.log("validate: --------> ", response);
-      res.status(201).json({ response });
+    const response = {
+      status: constantStatus.SUCCEDD,
+      validate: validate,
+    };
+    console.log("validate: --------> ", response);
+    res.status(201).json({ response });
   } catch (err) {
-      next(err);
+    next(err);
   }
-}
+};
