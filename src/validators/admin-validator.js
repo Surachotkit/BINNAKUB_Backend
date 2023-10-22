@@ -1,11 +1,18 @@
 const Joi = require("joi");
 
 const addQuantitySchema = Joi.object({
-    amount: Joi.number().required(),
-    coin_list_id: Joi.number()
+    quantity: Joi.number().required(),
+    coin_name: Joi.string()
 })
 
 exports.addQuantitySchema = addQuantitySchema;
+
+const addCoinSchema = Joi.object({
+    coin_name: Joi.string().required(),
+    // coin_list_id: Joi.number()
+})
+
+exports.addCoinSchema = addCoinSchema;
 
 const deleteSchema = Joi.object({
     coin_list_id: Joi.number()
