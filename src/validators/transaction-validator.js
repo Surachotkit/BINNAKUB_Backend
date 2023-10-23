@@ -5,6 +5,7 @@ const transactionSchema = Joi.object({
     type: Joi.string().required(),
     price: Joi.number().required(),
     quantity: Joi.number().required(),
+    amountUsdt: Joi.number(),
     fee: Joi.number(),
     user_id: Joi.number()
 }).options({ stripUnknown: true }); // This line will remove unknown properties

@@ -30,3 +30,5 @@ exports.getmarket = async (req, res, next) => {
     console.log("🚀 ~ file: coinlist-controller.js:9 ~ exports.getmarket= ~ get:", getCoinListInActive)
     res.status(200).json([{getCoinListInActive}]);
   };
+
+

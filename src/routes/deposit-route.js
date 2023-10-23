@@ -6,6 +6,6 @@ const router = express.Router()
 
 router.post('/create', authenticateMiddleware,depositController.create)
 router.patch('/topup', authenticateMiddleware,depositController.topup)
-router.post('/validate', depositController.validate)
+router.post('/validate', authenticateMiddleware,depositController.validate)
 
 module.exports = router

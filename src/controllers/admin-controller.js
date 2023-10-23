@@ -26,10 +26,7 @@ exports.uploadLogoCoin = async (req, res, next) => {
           quantity: obj.quantity,
         },
       });
-      // console.log(
-      //   "🚀 ~ file: admin-controller.js:22 ~ exports.uploadLogoCoin= ~ addPhoto:",
-      //   addPhoto
-      // );
+
     }
 
     res.status(201).json({ msg: "addPhoto" });
@@ -144,6 +141,49 @@ exports.deleteCoin = async (req, res, next) => {
     });
 
     res.status(200).json({ message: "deleted" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// show transaction history -------- Admin
+exports.getTransactionProfileAdmin = async (req, res, next) => {
+  try {
+    
+    const findTransactionHistory = await prisma.transaction.findMany({
+      select: {
+        transaction_id: true,
+        coin_name: true,
+        quantity: true,
+        type: true,
+        price: true,
+        fee: true,
+        user_id: true,
+      }
+    });
+    
+    res.status(201).json({ findTransactionHistory });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// show deposit history -------- Admin
+exports.getDepositProfileAdmin = async (req, res, next) => {
+  try {
+    
+    const findDepositHistory = await prisma.history_payment.findMany({
+      select: {
+        history_payment_id: true,
+        amount: true,
+        user_id: true,
+      }
+    });
+    console.log("🚀 ~ file: admin-controller.js:157 ~ exports.getTransactionProfileAdmin= ~ findPortfolioByUserId:", findDepositHistory)
+    
+
+    res.status(201).json({ findDepositHistory });
   } catch (err) {
     next(err);
   }

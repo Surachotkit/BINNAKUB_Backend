@@ -10,5 +10,7 @@ router.post("/create", authenticateMiddleware, uploadMiddleware.single("image_co
 router.post("/addcoin", adminController.addCoinInMarket)
 router.patch("/addquantity", adminController.addQuantity)
 router.delete("/delete/:coin_list_id", adminController.deleteCoin)
+router.get("/transactionhistory", adminController.getTransactionProfileAdmin)
+router.get("/deposithistory", adminController.getDepositProfileAdmin)
 
 module.exports = router
