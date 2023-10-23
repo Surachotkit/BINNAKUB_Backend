@@ -8,8 +8,9 @@ const addQuantitySchema = Joi.object({
 exports.addQuantitySchema = addQuantitySchema;
 
 const addCoinSchema = Joi.object({
-    coin_name: Joi.string().required(),
-    // coin_list_id: Joi.number()
+    coin_name: Joi.string(),
+    coin_list_id: Joi.number(),
+
 })
 
 exports.addCoinSchema = addCoinSchema;

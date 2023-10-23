@@ -79,23 +79,33 @@ exports.addQuantity = async (req, res, next) => {
 exports.addCoinInMarket = async (req,res,next) => {
   try{
     const { value, error } = addCoinSchema.validate(req.body);
-    // console.log("🚀 ~ file: admin-controller.js:49 ~ exports.addQuantity= ~ value:", value)
+    console.log("🚀 ~ file: admin-controller.js:82 ~ exports.addCoinInMarket= ~ value:", value)
+    console.log("🚀 ~ file: admin-controller.js:49 ~ exports.addQuantity= ~ value:", value.coin_name)
+    console.log("🚀 ~ file: admin-controller.js:49 ~ exports.addQuantity= ~ value:", value.coin_list_id)
+   
 
     if (error) {
       return next(error);
     }
+    const body = {
+      coin_list_id: value?.coin_list_id,
+      coin_name: value?.coin_name
+    }
+    console.log("🚀 ~ file: admin-controller.js:91 ~ exports.addCoinInMarket= ~ body:", body)
 
-    const update = await prisma.coin_list.update({
-      data: value?.coin_name,
+    const findCoinInActive = await prisma.coin_list.findFirst({
+      where: body
+    });
+    console.log("🚀 ~ file: admin-controller.js:96 ~ exports.addCoinInMarket= ~ findCoinInActive:", findCoinInActive)
+
+    await prisma.coin_list.update({
+      data: { status: "Active"},
       where: {
-        coin_name: value?.coin_name,
-        status: "Active"
+        coin_list_id: findCoinInActive?.coin_list_id
+       
       }
     })
-    // console.log("🚀 ~ file: admin-controller.js:101 ~ exports.addCoinInMarket= ~ update:", update)
     
-
-
     res.status(200).json({ message: "addCoin success" });
   }catch(err){
     next(err)
