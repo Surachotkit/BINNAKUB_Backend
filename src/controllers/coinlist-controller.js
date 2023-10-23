@@ -4,7 +4,10 @@ exports.getmarket = async (req, res, next) => {
 
     const getCoinList = await prisma.coin_list.findMany({
         where: {
-            status: "Active"
+            status: "Active",
+            NOT:{
+                type_coin: "Stablecoin"
+            }
         }
         
     })
