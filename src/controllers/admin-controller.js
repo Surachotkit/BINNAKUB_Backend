@@ -134,11 +134,12 @@ exports.deleteCoin = async (req, res, next) => {
       return next(createError("cannot delete this", 400));
     }
 
-    await prisma.coin_list.delete({
+     await prisma.coin_list.delete({
       where: {
-        coin_list_id: del.coin_list_id,
+        coin_list_id: del?.coin_list_id,
       },
     });
+    // console.log("🚀 ~ file: admin-controller.js:142 ~ exports.deleteCoin ~ test:", test)
 
     res.status(200).json({ message: "deleted" });
   } catch (err) {

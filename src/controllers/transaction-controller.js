@@ -5,11 +5,11 @@ const constantStatus = require("../util/constant/status")
 const constantCoin = require("../util/constant/coin")
 
 
-
+// ซื้อครั้งแรก  1
 exports.create = async (req, res, next) => {
 
     try {
-        // get request body from front-end
+        
         const { value, error } = transactionSchema.validate(req.body);
         if (error) {
             return next(error);
@@ -36,7 +36,9 @@ exports.create = async (req, res, next) => {
         });
 
   
-        // update stock fron coin_list ---> find coin_name = BTC in Table: coin_list
+        // ****UPDATE****  coinlist
+
+        // find coin_name = BTC  ------ ADMIN
         const findCoinList = await prisma.coin_list.findFirst({
           where: {
               coin_name: value?.coin_name
@@ -53,6 +55,8 @@ exports.create = async (req, res, next) => {
                 quantity: newAmountUpdateInTableCoinList
             }
         });
+
+        // ****UPDATE****  portfolio(update) / transaction(create) / coinlist(update)   USER
 
         // update USDT in my portfolio , transaction , coin_list ----> ( User )
         const findUsdtInMyPortfolio = await prisma.portfolio.findFirst({
@@ -102,7 +106,10 @@ exports.create = async (req, res, next) => {
                 quantity: updateCoinListUsdt
             }
         });
-        
+
+
+        // **** Portfolio ****
+
         // find coin from portfolio
         const checkCoinListRelationship = await prisma.portfolio.findFirst({
             where: {
@@ -110,6 +117,8 @@ exports.create = async (req, res, next) => {
             }
         })
 
+        // ถ้าไม่มีค่า ให้ create row
+        // ถ้ามีค่า ให้ update
         if(checkCoinListRelationship === null){
             // set up budy
             let bodyNewCoinInPortfolio = {
@@ -140,7 +149,7 @@ exports.create = async (req, res, next) => {
 }
 
 
-
+// buy , sell ครั้งที่ 2++
 exports.update = async (req, res, next) => {
 
   try {
@@ -169,7 +178,7 @@ exports.update = async (req, res, next) => {
       });
 
   
-
+       // ******BUY*******
       if(value?.type === constantStatus.BUY){
           // update stock fron coin_list ( ADMIN )
           const findCoinList = await prisma.coin_list.findFirst({
@@ -239,8 +248,13 @@ exports.update = async (req, res, next) => {
                 quantity: updateCoinListUsdt
             }
         });
-        // END BUY TRANSACTION
+        // END BUY TRANSACTION -----------------------------
 
+
+
+        // ******SELL*******
+        // ADMIN
+        // sell btc = 300usdt ----> update coin_list USDT + 300 ...
       }else if(value?.type === constantStatus.SELL){
 
         // update stock fron coin_list --> ( ADMIN )
@@ -260,6 +274,7 @@ exports.update = async (req, res, next) => {
             }
         });
 
+        // USER***
         // update USDT in my portfolio , transaction , coin_list --->  ( USER )
         const findUsdtInMyPortfolio = await prisma.portfolio.findFirst({
           where: {
@@ -311,11 +326,16 @@ exports.update = async (req, res, next) => {
         });
       }
 
+      // *** คำนวน quantity ทั้งหมดที่ user ซื้อ ****
+
+
       const checkPortfolioRelationship = await prisma.portfolio.findFirst({
           where: {
               AND: [{coin_name: value?.coin_name},{user_id: value?.user_id}]
           }
       })
+
+
       // ถ้าเจอ BTC ใน table portfolio และ สถานะที่ front-end ส่งมาเป็น BUY ?
       if(checkPortfolioRelationship != null && value?.type === constantStatus.BUY){
 
@@ -429,7 +449,7 @@ exports.update = async (req, res, next) => {
                       ]
                   }
               })
-
+              // อัพเดททีละ row ให้เป็น status : Inactive
               await allTransaction.map((datas => {
                   prisma.transaction.update({ 
                       data: {
@@ -491,9 +511,11 @@ exports.validate = async (req, res, next) => {
       });
 
       let validate;
-
+      // ถ้าไม่มี ให้ create
       if (!findPortfolio) {
           validate = false
+
+       // ถ้ามี ให้ update   
       }else{
           validate = true
       }
@@ -514,7 +536,7 @@ exports.validate = async (req, res, next) => {
 const calculateFee = (fee, quantity, price) => {
   return fee * (quantity * price)
 }
-
+// รวมค่าว่า BUY ที่ถืออยู่มีจำนวน BTC เท่าไหร่ 
 const sumQuantitys = (dataFromTransaction) => {
   const calculateQuantity = dataFromTransaction.reduce((sum, data) => {
       const quantity = data?.quantity;
