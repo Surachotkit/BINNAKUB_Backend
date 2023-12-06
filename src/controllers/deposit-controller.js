@@ -7,7 +7,7 @@ const constantCoin = require('../util/constant/coin')
 const constantStatus = require("../util/constant/status")
 const constantFee = require("../util/constant/fee")
 
-
+// fisrt time
 exports.create = async (req, res, next) => {
   try {
     const { value, error } = depositSchema.validate(req.body);
@@ -23,17 +23,17 @@ exports.create = async (req, res, next) => {
       amount: value?.amount,
       user_id: user_id,
     };
-
+    // deposit
     const createHistoryPayment = await prisma.history_payment.create({
       data: bodyRequest,
     });
-
+    // update coin list
     const findCoinListUSDT = await prisma.coin_list.findFirst({
       where: {
           coin_name: constantCoin.USDT
       }
     });
-
+    // valueOld - valueNewUser 
     const newAmountUpdateInTableCoinList = parseFloat(findCoinListUSDT?.quantity) - parseFloat(value?.amount);
     await prisma.coin_list.update({
       where: {
@@ -43,7 +43,7 @@ exports.create = async (req, res, next) => {
           quantity: newAmountUpdateInTableCoinList
       }
     });
-
+    // create transaction
     const Fee = constantFee?.FEE
     const fee = (parseFloat(value?.amount) * parseFloat(Fee))
     let bodyTransaction = {
@@ -55,7 +55,7 @@ exports.create = async (req, res, next) => {
         user_id: user_id,
         status: constantStatus?.ACTIVE
     }
-  
+    
     await prisma.transaction.create({
         data: bodyTransaction,
     });
@@ -68,7 +68,7 @@ exports.create = async (req, res, next) => {
         weight: 0,
         user_id: user_id
     }
-
+    // create portfolio
     await prisma.portfolio.create({
         data: bodyNewCoinInPortfolio,
     });
@@ -87,7 +87,7 @@ exports.create = async (req, res, next) => {
 
 
 
-
+// next time
 exports.topup = async (req, res, next) => {
   try {
     const { value, error } = depositSchema.validate(req.body);
@@ -102,11 +102,11 @@ exports.topup = async (req, res, next) => {
       amount: value?.amount,
       user_id: user_id
     }
-
+    // deposit
     const createHistoryPayment = await prisma.history_payment.create({
       data: bodyRequest
     })
-
+    // update coinlist
     const findCoinListUSDT = await prisma.coin_list.findFirst({
       where: {
           coin_name: constantCoin.USDT
@@ -123,7 +123,7 @@ exports.topup = async (req, res, next) => {
             }
         });
 
-
+        // create transaction
         const Fee = constantFee?.FEE
         const fee = (parseFloat(value?.amount) * parseFloat(Fee)) 
         let bodyTransaction = {
@@ -138,13 +138,13 @@ exports.topup = async (req, res, next) => {
         await prisma.transaction.create({
             data: bodyTransaction,
         });
-
+        // update portfolio
         const findOldUsdtInPortfolio = await prisma.portfolio.findFirst({
             where: {
                 AND: [{coin_name: constantCoin.USDT}, {user_id: user_id}] 
             }
         })
-
+        
         const newAmount = parseFloat(findOldUsdtInPortfolio?.quantity) + parseFloat(value?.amount);
   
         await prisma.portfolio.update({
@@ -185,13 +185,14 @@ exports.validate = async (req, res, next) => {
       });
 
       let validate;
-
+      // ถ้าไม่มี ให้ create
       if (!findHistoryPayment) {
           validate = false
+      // ถ้ามี ให้ update
       }else{
           validate = true
       }
-
+      
       const response = {
           status: constantStatus.SUCCEDD,
           validate: validate
